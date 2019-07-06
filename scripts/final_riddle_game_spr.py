@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import csv
 import rospy
-from sound_system.srv import StringService
+from sound_system.srv import StringService, HotwordService
 from start_pkg.msg import Activate
 from std_msgs.msg import String
 import os
@@ -26,17 +26,25 @@ class RiddleGameSPR:
         # type:(Activate)->None
         if msg.id == self.id:
             for i in range(10):
+                self.hot_word()
                 print i + 1
                 text = self.resume_text("spr_sample_sphinx")
                 print text
-                if text not in self.a_q_dict:
-                    continue
                 answer = self.a_q_dict[text]
                 print answer
                 self.speak(answer)
             print "終了"
-            
-    
+
+    @staticmethod
+    def hot_word():
+        """
+        「hey, ducker」に反応
+        :return:
+        """
+        rospy.wait_for_service("/hotword/detect", timeout=1)
+        print "hot_word待機"
+        rospy.ServiceProxy("/hotword/detect", HotwordService)()
+
     @staticmethod
     def read_q_a(path):
         # type: (str)->dict

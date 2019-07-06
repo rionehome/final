@@ -1,3 +1,6 @@
 <launch>
+    <include file="$(find sound_system)/launch/hotword.launch"/>
+	<include file="$(find sound_system)/launch/speak.launch"/>
+    
     <node pkg="the_riddle_game_pkg" name="riddle_game_spr" type="riddle_game_spr.py"/>
 </launch>
