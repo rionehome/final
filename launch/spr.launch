@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="the_riddle_game_pkg" name="riddle_game_spr" type="riddle_game_spr.py"/>
+</launch>
