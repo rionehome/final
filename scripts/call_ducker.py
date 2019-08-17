@@ -9,7 +9,7 @@ from move.msg import AmountGoal, AmountAction
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 import rospy
 import actionlib
-from sound_system.srv import HotwordService, StringService
+from sound_system.srv import StringService
 from std_msgs.msg import String, Int32, Bool
 from nav_msgs.msg import Odometry
 from ros_posenet.msg import *
@@ -79,16 +79,6 @@ class CallDucker:
         """
         rospy.wait_for_service("/sound_system/speak")
         rospy.ServiceProxy("/sound_system/speak", StringService)(sentence)
-    
-    @staticmethod
-    def hot_word():
-        """
-        「hey, ducker」に反応
-        :return:
-        """
-        rospy.wait_for_service("/sound_system/hotword", timeout=1)
-        print "hot_word待機"
-        rospy.ServiceProxy("/sound_system/hotword", HotwordService)()
     
     def move_turn(self, angle):
         """
@@ -223,17 +213,12 @@ class CallDucker:
                 self.shutter_pub.publish(String(data="take"))
                 print "シャッター"
                 while self.status is None and not self.failed:
-                    print self.status
-                    print self.failed
                     pass
                 if self.status is None:
-                    self.speak("I am sorry, not found you. Please call, 'Hey, Ducker.' again.")
                     continue
                 if self.status == actionlib.GoalStatus.SUCCEEDED:
                     self.finish_pub.publish(Bool(data=True))
                     return
-                else:
-                    self.speak("The destination could not be set. Please call, 'Hey, Ducker.' again.")
             
             self.finish_pub.publish(Bool(data=False))
     
@@ -269,6 +254,7 @@ class CallDucker:
         # 手を上げている一番近い人間
         if len(person_position) == 0:
             print "誰もいない"
+            self.speak("Sorry. I can't found you.")
             self.failed = True
             return
         if min(person_position) < MARGIN:
@@ -277,7 +263,8 @@ class CallDucker:
             return
         
         print "発見"
-        self.se.play(self.se.DISCOVERY)
+        self.se.play(self.se.WARNING)
+        print "se"
         real_position = self.calc_real_position(person_position[min(person_position)])
         result = self.calc_safe_position(MARGIN, (real_position[0], real_position[1]))
         self.status = self.send_move_base((result[0], result[1], 0))
@@ -285,6 +272,7 @@ class CallDucker:
             print "到着"
         else:
             print"失敗"
+            self.speak("Sorry. I can't found you.")
             self.failed = True
 
 

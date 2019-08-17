@@ -1,0 +1,27 @@
+<launch>
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+    <include file="$(find turtlebot_custom)/launch/gmapping_lidar.launch"/>
+    <include file="$(find turtlebot_custom)/launch/lidar.launch"/>
+    <include file="$(find turtlebot_custom)/launch/rviz.launch"/>
+
+    <node pkg="sound_system" name="speak" type="speak.py" output="screen"/>
+
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch"/>
+
+    <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
+        <param name="model" value="mobilenet_v2_large" />
+        <param name="resolution" value="640x480" />
+    </node>
+
+
+    <group ns="final">
+        <node pkg="final" name="trigger" respawn="false" type="trigger.py" output="screen"/>
+        <node pkg="final" name="call_ducker" type="call_ducker.py" output="screen"/>
+		<node pkg="final" name="final" type="final.py" output="screen"/>
+    </group>
+
+    <node name="realsense" pkg="tfpose_ros" type="tf_pose_realsense_once" output="screen" required="true"/>
+
+
+</launch>
