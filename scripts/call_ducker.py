@@ -215,15 +215,12 @@ class CallDucker:
     def control_callback(self, msg):
         # type:(String)->None
         if msg.data == "start":
-            for i in range(5):
+            while True:
                 self.status = None
                 self.failed = False
-                # 音源定位
-                self.hot_word()
-                self.turn_sound_source()
                 self.speak("Please raise your hand.")
-                self.shutter_pub.publish(String(data="take"))
                 time.sleep(3)
+                self.shutter_pub.publish(String(data="take"))
                 print "シャッター"
                 while self.status is None and not self.failed:
                     print self.status
@@ -237,6 +234,7 @@ class CallDucker:
                     return
                 else:
                     self.speak("The destination could not be set. Please call, 'Hey, Ducker.' again.")
+            
             self.finish_pub.publish(Bool(data=False))
     
     def odometry_callback(self, msg):

@@ -6,6 +6,7 @@ class SE:
     def __init__(self):
         self.se_path = "{}/etc/SE/".format(rospkg.RosPack().get_path('restaurant'))
         self.DISCOVERY = self.se_path + "discovery.wav"
+        self.WARNING = self.se_path + "warning.wav"
     
     @staticmethod
     def play(se):
