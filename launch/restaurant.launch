@@ -1,0 +1,59 @@
+<launch>
+
+    <node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+    <include file="$(find turtlebot_custom)/launch/gmapping_lidar.launch"/>
+    <include file="$(find turtlebot_custom)/launch/lidar.launch"/>
+    <include file="$(find turtlebot_custom)/launch/rviz.launch"/>
+
+    <node name="respeaker_node" pkg="respeaker_ros" output="screen" type="respeaker_node.py"/>
+    <node name="static_transformer" pkg="tf" type="static_transform_publisher"
+        args="0 0 0 0 0 0 map respeaker_base 100"/>
+
+    <node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
+        <env name="CUDA_VISIBLE_DEVICES" value="0" />
+        <param name="model" value="mobilenet_v2_large" />
+        <param name="resolution" value="640x480" />
+    </node>
+    <node pkg="tfpose_ros" name="tf_pose_realsense_once" respawn="true" type="tf_pose_realsense_once"/>
+
+    <group ns="sound_system">
+    	<include file="$(find sound_system)/launch/hotword.launch"/>
+        <node pkg="sound_system" name="speak" output="screen" respawn="false" type="speak.py"/>
+        <node pkg="sound_system" name="sphinx" type="sphinx.py" output="screen">
+            <param name="dict" value="follow_me_sphinx.dict"/>
+            <param name="gram" value="follow_me_sphinx.gram"/>
+        </node>
+        <node pkg="sound_system" name="log" output="screen" respawn="false" type="log.py"/>
+    </group>
+
+    <group ns="move">
+        <node pkg="move" name="velocity" respawn="false" type="velocity"/>
+	    <node pkg="move" name="amount" respawn="false" type="amount"/>
+    </group>
+
+    <node name="nlp_main" pkg="natural_language_processing" type="main.py" output="screen" />
+    <param name="json_name" value="restaurant.json"/>
+
+    <group ns="restaurant">
+        <node name="trigger" pkg="restaurant" output="screen" respawn="false" type="trigger.py"/>
+        <node name="restaurant_judge_bar" pkg="restaurant"  type="judge_bar.py" output="screen"/>
+        <node name="restaurant_start" pkg="restaurant" type="start.py" output="screen" />
+        <node name="restaurant_check_customer" pkg="restaurant" type="check_customer.py" output="screen" />
+        <node name="restaurant_finish_delivery" pkg="restaurant" type="finish_delivery.py" output="screen" />
+        <node name="restaurant_finish_get_order" pkg="restaurant" type="finish_get_order.py" output="screen" />
+        <node name="restaurant_get_order" pkg="restaurant" type="get_order.py" output="screen" />
+        <node name="restaurant_restart_call_ducker" pkg="restaurant" type="restart_call_ducker.py" output="screen" />
+        <node name="restaurant_restart_get_order" pkg="restaurant" type="restart_get_order.py" output="screen" />
+        <node name="restaurant_restart_here_you_are" pkg="restaurant" type="restart_here_you_are.py" output="screen" />
+        <node name="restaurant_call_ducker" pkg="restaurant" type="call_ducker.py" output="screen" />
+    </group>
+
+    <node pkg="location" name="location" type="location_manager.py" output="screen">
+        <param name="info_file" value="mapping.txt"/>
+    </node>
+
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch"/>
+
+</launch>

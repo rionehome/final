@@ -1,7 +1,0 @@
-<launch>
-    <include file="$(find sound_system)/launch/hotword.launch"/>
-	<include file="$(find sound_system)/launch/speak.launch"/>
-   	<include file="$(find sound_system)/launch/sphinx.launch"/>
-    
-    <node pkg="final" name="riddle_game_spr" type="final_riddle_game_spr.py" output="screen"/>
-</launch>
