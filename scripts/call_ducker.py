@@ -254,6 +254,7 @@ class CallDucker:
         # 手を上げている一番近い人間
         if len(person_position) == 0:
             print "誰もいない"
+            self.speak("Sorry. I can't found you.")
             self.failed = True
             return
         if min(person_position) < MARGIN:
@@ -271,6 +272,7 @@ class CallDucker:
             print "到着"
         else:
             print"失敗"
+            self.speak("Sorry. I can't found you.")
             self.failed = True
 
 

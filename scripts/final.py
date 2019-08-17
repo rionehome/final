@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import actionlib
 import rospy
 from std_msgs.msg import String, Bool
 from sound_system.srv import StringService
+from location.srv import RegisterLocation, RequestLocation
+from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
+from geometry_msgs.msg import Point, Quaternion
+from module.rviz_marker import RvizMarker
 import time
 import difflib  # 類似度を計算するライブラリ
 
 
 class RestaurantFinal:
     def __init__(self):
-        rospy.init_node("final_finish", anonymous=True)
+        rospy.init_node("final", anonymous=True)
+
+        self.marker = RvizMarker()
+        self.move_base_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
         
         self.call_ducker_pub = rospy.Publisher("/call_ducker/control", String, queue_size=10)
         
@@ -23,6 +31,9 @@ class RestaurantFinal:
         :param data: オーダーのテキスト
         :return: なし
         """
+        rospy.wait_for_service('/location/register_current_location', timeout=1)
+        rospy.ServiceProxy('/location/register_current_location', RegisterLocation)("kitchen")
+
         self.print_function("order_text_callback")
         
         web_text = data.data.lower()
@@ -46,7 +57,7 @@ class RestaurantFinal:
         
         time.sleep(5)
         
-        self.speak("I will deliver {}. Please raise your hand.".format(order))
+        self.speak("I will deliver {}.".format(order))
         
         # call_duckerにメッセージを送信
         self.call_ducker_pub.publish("start")
@@ -62,9 +73,29 @@ class RestaurantFinal:
         if msg.data:
             # テーブルに着いた
             self.speak("Thank you for waiting. Here you are. So, I want you to take items.")
+
+            time.sleep(5)
+
+            rospy.wait_for_service("/location/request_location", timeout=1)
+            response = rospy.ServiceProxy("/location/request_location", RequestLocation)("kitchen").location
+            self.send_move_base(response)
+
         else:
             self.speak("Sorry, Please carry it in front of the customer.")
             print "お客さんの前に運んでください。"
+
+    def send_move_base(self, point):
+        goal = MoveBaseGoal()
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.pose.position = Point(point.x, point.y, point.z)
+        goal.target_pose.pose.orientation = Quaternion(0, 0, 0, 1)
+        self.marker.register(goal.target_pose.pose)
+        self.move_base_client.wait_for_server()
+        print "move_baseに送信"
+        self.move_base_client.send_goal(goal)
+        self.move_base_client.wait_for_result()
+        return self.move_base_client.get_state()
     
     @staticmethod
     def speak(text):
