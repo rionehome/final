@@ -9,7 +9,7 @@ class Trigger:
     def __init__(self):
         rospy.init_node("trigger")
         rospy.Subscriber("/mobile_base/events/button", ButtonEvent, self.kobuki_button_callback)
-        self.start_pub = rospy.Publisher("/natural_language_processing/start", String, queue_size=10)
+        self.start_pub = rospy.Publisher("/trigger/start", String, queue_size=10)
     
     def kobuki_button_callback(self, msg):
         # type:(ButtonEvent)->None

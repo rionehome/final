@@ -1,4 +1,6 @@
 <launch>
+	<node pkg="emergency_stop" name="emergency_stop" output="screen" respawn="false" type="main.py"/>
+	
     <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
     <include file="$(find turtlebot_custom)/launch/gmapping_lidar.launch"/>
     <include file="$(find turtlebot_custom)/launch/lidar.launch"/>
@@ -13,15 +15,20 @@
         <param name="model" value="mobilenet_v2_large" />
         <param name="resolution" value="640x480" />
     </node>
-
+    
+    <node pkg="voice_visualizer" type="app.js" name="sample_chat" output="screen" />
+    <node pkg="voice_visualizer" type="get_webpage.py" name="create_link" />
 
     <group ns="final">
         <node pkg="final" name="trigger" respawn="false" type="trigger.py" output="screen"/>
         <node pkg="final" name="call_ducker" type="call_ducker.py" output="screen"/>
 		<node pkg="final" name="final" type="final.py" output="screen"/>
     </group>
+    
+    <node pkg="location" name="location" type="location_manager.py" output="screen">
+        <param name="info_file" value="mapping.txt"/>
+    </node>
 
     <node name="realsense" pkg="tfpose_ros" type="tf_pose_realsense_once" output="screen" required="true"/>
-
 
 </launch>

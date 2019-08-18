@@ -15,14 +15,28 @@ import difflib  # 類似度を計算するライブラリ
 class RestaurantFinal:
     def __init__(self):
         rospy.init_node("final", anonymous=True)
-
+        
         self.marker = RvizMarker()
         self.move_base_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
         
         self.call_ducker_pub = rospy.Publisher("/call_ducker/control", String, queue_size=10)
-        
+        self.active_flag = False
+        rospy.Subscriber("/trigger/start", String, self.start_callback)
         rospy.Subscriber("/order_input", String, self.order_text_callback)
         rospy.Subscriber("/call_ducker/finish", Bool, self.call_ducker_callback)
+    
+    def start_callback(self, data):
+        # type:(String) -> None
+        """
+        トリガーのcallback関数
+        最初の発話
+        :param data: 空文字
+        :return:なし
+        """
+        self.print_function("start_callback")
+        self.speak("Hello, everyone. I will start the demonstration now.")
+        time.sleep(0.5)
+        self.speak("If you want to order, please input the item from the tablet.")
     
     def order_text_callback(self, data):
         # type:(String) -> None
@@ -31,15 +45,20 @@ class RestaurantFinal:
         :param data: オーダーのテキスト
         :return: なし
         """
+        if self.active_flag:
+            return
+        
+        self.active_flag = True
+        self.print_function("order_text_callback")
+        
         rospy.wait_for_service('/location/register_current_location', timeout=1)
         rospy.ServiceProxy('/location/register_current_location', RegisterLocation)("kitchen")
-
-        self.print_function("order_text_callback")
         
         web_text = data.data.lower()
         
         order_sentence_list = ["i want beans", "i want biscuits", "i want coca cola", "i want cookies",
-                               "i want grape juice"]
+                               "i want grape juice", "i want green tea", "i want olive", "i want onion soup",
+                               "i want pringles"]
         # 類似度計算
         score = 0
         order_sentence = ""
@@ -51,7 +70,6 @@ class RestaurantFinal:
         
         order = " ".join(order_sentence.split()[2:])  # 商品名
         
-        # キッチンに着いた
         self.speak("Order is {}.".format(order))
         self.speak("Please give me items.")
         
@@ -63,6 +81,7 @@ class RestaurantFinal:
         self.call_ducker_pub.publish("start")
     
     def call_ducker_callback(self, msg):
+        # type:(Bool) -> None
         """
         call_duckerのcallback関数
         call_ducekrの成功/失敗を判定
@@ -73,17 +92,18 @@ class RestaurantFinal:
         if msg.data:
             # テーブルに着いた
             self.speak("Thank you for waiting. Here you are. So, I want you to take items.")
-
+            
             time.sleep(5)
-
+            
             rospy.wait_for_service("/location/request_location", timeout=1)
             response = rospy.ServiceProxy("/location/request_location", RequestLocation)("kitchen").location
             self.send_move_base(response)
-
+        
         else:
             self.speak("Sorry, Please carry it in front of the customer.")
             print "お客さんの前に運んでください。"
-
+        self.active_flag = False
+    
     def send_move_base(self, point):
         goal = MoveBaseGoal()
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -113,7 +133,7 @@ class RestaurantFinal:
     def print_function(name):
         # type: (str) -> None
         """
-        ノード名を表示
+        関数名を表示
         :return: なし
         """
         print("\n###########################################\n")
