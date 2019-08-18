@@ -36,7 +36,7 @@ class RestaurantFinal:
         self.print_function("start_callback")
         self.speak("Hello, everyone. I will start the demonstration now.")
         time.sleep(0.5)
-        self.speak("If you want to order, please enter the item from the tablet.")
+        self.speak("If you want to order, please input the item from the tablet.")
 
     def order_text_callback(self, data):
         # type:(String) -> None

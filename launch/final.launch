@@ -15,6 +15,9 @@
         <param name="model" value="mobilenet_v2_large" />
         <param name="resolution" value="640x480" />
     </node>
+    
+    <node pkg="voice_visualizer" type="app.js" name="sample_chat" output="screen" />
+    <node pkg="voice_visualizer" type="get_webpage.py" name="create_link" />
 
     <group ns="final">
         <node pkg="final" name="trigger" respawn="false" type="trigger.py" output="screen"/>
