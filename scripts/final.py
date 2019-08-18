@@ -102,6 +102,7 @@ class RestaurantFinal:
         else:
             self.speak("Sorry, Please carry it in front of the customer.")
             print "お客さんの前に運んでください。"
+        self.active_flag = False
     
     def send_move_base(self, point):
         goal = MoveBaseGoal()
