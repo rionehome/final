@@ -20,10 +20,24 @@ class RestaurantFinal:
         self.move_base_client = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
         
         self.call_ducker_pub = rospy.Publisher("/call_ducker/control", String, queue_size=10)
-        
+
+        rospy.Subscriber("/trigger/start", String, self.start_callback)
         rospy.Subscriber("/order_input", String, self.order_text_callback)
         rospy.Subscriber("/call_ducker/finish", Bool, self.call_ducker_callback)
-    
+
+    def start_callback(self, data):
+        # type:(String) -> None
+        """
+        トリガーのcallback関数
+        最初の発話
+        :param data: 空文字
+        :return:なし
+        """
+        self.print_function("start_callback")
+        self.speak("Hello, everyone. I will start the demonstration now.")
+        time.sleep(0.5)
+        self.speak("If you want to order, please enter the item from the tablet.")
+
     def order_text_callback(self, data):
         # type:(String) -> None
         """
@@ -31,15 +45,16 @@ class RestaurantFinal:
         :param data: オーダーのテキスト
         :return: なし
         """
+        self.print_function("order_text_callback")
+
         rospy.wait_for_service('/location/register_current_location', timeout=1)
         rospy.ServiceProxy('/location/register_current_location', RegisterLocation)("kitchen")
 
-        self.print_function("order_text_callback")
         
         web_text = data.data.lower()
         
         order_sentence_list = ["i want beans", "i want biscuits", "i want coca cola", "i want cookies",
-                               "i want grape juice"]
+                               "i want grape juice", "i want green tea", "i want olive", "i want onion soup", "i want pringles"]
         # 類似度計算
         score = 0
         order_sentence = ""
@@ -50,8 +65,7 @@ class RestaurantFinal:
                 order_sentence = x
         
         order = " ".join(order_sentence.split()[2:])  # 商品名
-        
-        # キッチンに着いた
+
         self.speak("Order is {}.".format(order))
         self.speak("Please give me items.")
         
@@ -63,6 +77,7 @@ class RestaurantFinal:
         self.call_ducker_pub.publish("start")
     
     def call_ducker_callback(self, msg):
+        # type:(Bool) -> None
         """
         call_duckerのcallback関数
         call_ducekrの成功/失敗を判定
@@ -113,7 +128,7 @@ class RestaurantFinal:
     def print_function(name):
         # type: (str) -> None
         """
-        ノード名を表示
+        関数名を表示
         :return: なし
         """
         print("\n###########################################\n")
