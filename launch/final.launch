@@ -18,10 +18,11 @@
     <group ns="final">
         <node pkg="final" name="trigger" respawn="false" type="trigger.py" output="screen"/>
         <node pkg="final" name="call_ducker" type="call_ducker.py" output="screen"/>
-		<node pkg="final" name="final" type="final.py" output="screen"/>
+        <node pkg="final" name="final" type="final.py" output="screen"/>
     </group>
 
     <node name="realsense" pkg="tfpose_ros" type="tf_pose_realsense_once" output="screen" required="true"/>
-
+    <node pkg="voice_visualizer" type="app.js" name="sample_chat" output="screen" />
+    <node pkg="voice_visualizer" type="get_webpage.py" name="create_link" />
 
 </launch>
